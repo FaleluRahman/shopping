@@ -4,9 +4,7 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const exphbs = require('express-handlebars');
-const formidable =require('formidable')
-const fs=require('fs')
-// const fileUpload=require('express-fileupload')
+
 
 
 
@@ -14,8 +12,8 @@ const userRouter = require('./routes/users');
 const adminRouter = require('./routes/admin');
 
 const app = express();
+const db = require('./config/connection');
 
-// view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hbs');
 app.engine('hbs', exphbs.engine({
@@ -26,14 +24,30 @@ app.engine('hbs', exphbs.engine({
 }));
 
 app.use(logger('dev'));
-app.use(express.json());
+
 app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 app.use(cookieParser());
 // app.use(express.urlencoded({extended:true}))
 
 app.use(express.static(path.join(__dirname, 'public')));
 // app.use(cors());
 // app.use(fileUpload())
+
+db.connect((err) => {
+  if (err) {
+    console.error("Connection Error", err);
+    process.exit(1);
+  } else {
+    console.log("Database Connected to port 27017");
+
+    // Continue setting up Express and routes here
+  }
+});
+
+
+
+
 app.use('/', userRouter);
 app.use('/admin', adminRouter);
 
@@ -54,19 +68,6 @@ app.use(function(err, req, res, next) {
 });
 
 
-app.use((req, res, next) => {
-  const form = formidable({ multiples: true, uploadDir: path.join(__dirname, 'uploads') });
 
-  form.parse(req, async (err, fields, files) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    }
-
-    req.body = fields;
-    req.files = files;
-
-    next();
-  });
-});
 
 module.exports = app;

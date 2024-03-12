@@ -1,8 +1,19 @@
 const express = require('express');
 const router = express.Router();
-const formidable = require('formidable');
 const fs = require('fs');
 const path = require('path');
+const multer = require('multer');
+const productHelpers = require('../helpers/product-helpers.js');
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/'); // specify the directory for storing uploaded files
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname)); // use current timestamp as filename
+  }
+});
+
+const upload = multer({ storage: storage });
 
 /* GET users listing. */
 router.get('/', function(req, res, next) {
@@ -18,19 +29,19 @@ router.get('/', function(req, res, next) {
       name: "Samsung Galaxy S23 5G (Green, 8GB, 256GB Storage)",
       category: "Mobile",
       description: "Brand New Seal Pack. 12 months Apple Global Warranty. Physical SIM & eSIM",
-      image: "https://m.media-amazon.com/images/I/61RZDb2mQxL._SL1500_.jpg"
+      image: "https://m.media-amazon.com/images/I/61RZDb2mQxL.SL1500.jpg"
     },
     {
       name: "TECNO Spark GO 2024 (Mystery White,8GB* RAM, 128GB ROM)",
       category: "Mobile",
       description: "Brand New Seal Pack. 12 months Apple Global Warranty. Physical SIM & eSIM",
-      image: "https://m.media-amazon.com/images/I/41XU-QOw01L._SX300_SY300_QL70_FMwebp_.jpg"
+      image: "https://m.media-amazon.com/images/I/41XU-QOw01L.SX300_SY300_QL70_FMwebp.jpg"
     },
     {
       name: "OPPO A59 5G (Silk Gold, 4GB RAM, 128GB Storage)",
       category: "Mobile",
       description: "Brand New Seal Pack. 12 months Apple Global Warranty. Physical SIM & eSIM",
-      image: "https://m.media-amazon.com/images/I/81ZQ45FUSkL._SL1500_.jpg"
+      image: "https://m.media-amazon.com/images/I/81ZQ45FUSkL.SL1500.jpg"
     }
 
 
@@ -42,22 +53,24 @@ router.get('/add-product', function(req, res) {
   res.render('admin/add-product');
 });
 
-router.post('/add-product', function(req, res) {
-  const form = formidable({ multiples: true, uploadDir: path.join(__dirname, '..', 'uploads') });
+router.post('/add-product', upload.single('image'), function (req, res) {
+  console.log('Form Data:', req.body);
+  console.log('Uploaded File:', req.file);
 
-  form.parse(req, async (err, fields, files) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
+  productHelpers.addProduct(req.body, (result) => {
+    if (result) {
+      res.render("admin/add-product", { success: true }); // Render success page
+    } else {
+      res.render("admin/add-product", { success: false }); // Render failure page
     }
 
-    // Now you have access to fields and files
-    console.log(fields);
-    console.log(files);
+    res.send('File uploaded successfully!');
 
-    // Process the form data or handle file uploads here
-
-    res.send('Form data received successfully');
   });
 });
+
+  
+
+
 
 module.exports = router;
