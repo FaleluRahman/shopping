@@ -13,7 +13,7 @@ const adminRouter = require('./routes/admin');
 
 const app = express();
 const db = require('./config/connection');
-
+const session=require('express-session')
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hbs');
 app.engine('hbs', exphbs.engine({
@@ -33,11 +33,12 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 // app.use(cors());
 // app.use(fileUpload())
+app.use(session({secret:"key",cookie:{maxAge:600000}}))
 
 db.connect((err) => {
   if (err) {
-    console.error("Connection Error", err);
-    process.exit(1);
+    console.log("Connection Error"+err);
+    
   } else {
     console.log("Database Connected to port 27017");
 
