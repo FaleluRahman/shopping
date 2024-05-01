@@ -2,6 +2,8 @@ const db = require('../config/connection');
 const collection = require('../config/collections');
 const bcrypt = require('bcrypt');
 const { ObjectId } = require('mongodb');
+const { reject, resolve } = require('promise');
+const { response } = require('express');
 
 module.exports = {
     addProduct: (product, callback) => {
@@ -16,16 +18,50 @@ module.exports = {
         });
     },
     deleteProduct: (prodId) => {
-        return new Promise((resolve, reject) => {
-            console.log(ObjectId(prodId));
-            db.get().collection(collection.PRODUCT_COLLECTION).removeOne({ _id: ObjectId(prodId) }).then((response) => {
-                resolve(response);
-            }).catch((error) => {
-                reject(error);
-            });
+    return new Promise((resolve, reject) => {
+      const objectId = new ObjectId(prodId);
+       console.log(prodId)
+      db.get().collection(collection.PRODUCT_COLLECTION).deleteOne({ _id: objectId }).then((response) => {
+          resolve(response);
+      }).catch((error) => {
+          reject(error);
+      });
+    });
+  },
+  getProductDetails: (proId) => {
+    return new Promise((resolve, reject) => {
+        db.get().collection(collection.PRODUCT_COLLECTION).findOne({ _id: new ObjectId(proId) }).then((product) => {
+            resolve(product);
+        }).catch((error) => {
+            console.error(error);
+            resolve(null); // Returning null in case of error
         });
-    }
-};
+    });
+},
+updateProduct: (proId, proDetails) => {
+    return new Promise((resolve, reject) => {
+        db.get().collection(collection.PRODUCT_COLLECTION).updateOne({ _id: new ObjectId(proId) }, {
+            $set: {
+                name: proDetails.name,
+                description: proDetails.description,
+                price: proDetails.price,
+                category: proDetails.category
+              
+            }
+        }).then((response) => {
+            resolve();
+        }).catch((error) => {
+            reject(error);
+        });
+    });
+}
+
+
+}
+
+
+
+
 
 
 

@@ -10,6 +10,8 @@
       <th scope="col">Title</th>
       <th scope="col">Category</th>
       <th scope="col">Description</th>
+            <th scope="col">Price</th>
+
       <th>Image</th>
     </tr>
   </thead>
@@ -22,9 +24,11 @@
       <td>{{this.Name}}</td>
       <td>{{this.category}}</td>
       <td>{{this.Description}}</td>
+      <td>{{this.Price}}</td>
+
       <td><img style="width:50px;height:50px " src="/product-images/{{this._id}}.jpg" alt=""></td>
-      <td><a href="/admin/edit-product" class="btn btn-primary">Edit</a></td>
-       <td><a href="/admin/delete-product/{{this._id}}&name=Falelu" class="btn btn-danger">Delete</a></td>
+      <td><a href="/admin/edit-product/{{this._id}}?name=Falelu" class="btn btn-primary">Edit</a></td>
+       <td><a href="/admin/delete-product/{{this._id}}?name=Falelu" class="btn btn-danger" onclick="return confirm('Are You want to delete {{this.Name}} ?') ">Delete</a></td>
 
     </tr>
     {{/each}}
