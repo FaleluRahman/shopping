@@ -42,9 +42,9 @@ updateProduct: (proId, proDetails) => {
     return new Promise((resolve, reject) => {
         db.get().collection(collection.PRODUCT_COLLECTION).updateOne({ _id: new ObjectId(proId) }, {
             $set: {
-                name: proDetails.name,
-                description: proDetails.description,
-                price: proDetails.price,
+                Name: proDetails.Name,
+                Description: proDetails.Description,
+                Price: proDetails.Price,
                 category: proDetails.category
               
             }

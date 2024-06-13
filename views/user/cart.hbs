@@ -1,1 +1,74 @@
-<h2>cart is empty</h2>
+ <section>
+    <div class="container">
+        
+        <table class="table mt-5">
+            <thead>
+                <tr>
+
+                    <th scope="col">Item</th>
+                    <th scope="col">Title</th>
+                  <th scope="col">Quantity</th> 
+                </tr>
+   </thead>
+  <tbody>
+  {{#each products}}
+    {{#if this.quantity}}
+      <tr>
+        <td>
+          <img style="width: 50px; height: 50px;" src="/product-images/{{this.product._id}}.jpg" alt="">
+        </td>
+        <td>{{this.product.Name}}</td>
+        <td>
+          <button class="cart-item-count mr-3" onclick="changeQuantity('{{this._id}}', '{{this.product._id}}', -1)">-</button>
+          {{this.quantity}}
+          <button class="cart-item-count ml-3" onclick="changeQuantity('{{this._id}}', '{{this.product._id}}', 1)">+</button>
+        </td>
+        <td>
+          <a href="/user/remove-product/{{../_id}}/{{this.product._id}}" class="btn btn-danger" onclick="return confirm('Are you sure you want to remove {{this.product.Name}}?')">Remove</a>
+        </td>
+      </tr>
+    {{/if}}
+  {{/each}}
+</tbody>
+     
+         </div>
+</section>
+
+
+<script>
+    function changeQuantity(cartId,proId,count){
+    $.ajax({
+        url:'/change-product-quantity',
+        data:{
+            cart:cartId,
+            product:proId,
+            count:count
+        },
+        method:'post',
+        success:(response)=>{
+            alert(response)     
+        }
+    })
+    }
+</script>
+<script>
+  function removeProduct(cartId, productId) {
+    if (confirm('Are you sure you want to remove this product?')) {
+      $.ajax({
+        url: `/user/remove-product/${cartId}/${productId}`,
+        method: 'DELETE',
+        success: (response) => {
+          if (response.success) {
+            location.reload(); // Reload the page or update the cart display
+          } else {
+            alert('Failed to remove product');
+          }
+        },
+        error: (xhr, status, error) => {
+          console.error('Error removing product:', error);
+          alert('An error occurred while removing the product. Please try again.');
+        }
+      });
+    }
+  }
+</script>

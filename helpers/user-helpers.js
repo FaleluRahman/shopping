@@ -1,55 +1,9 @@
-// const db = require('../config/connection');
-// const collection = require('../config/collections');
-// const bcrypt = require('bcrypt');
-
-// module.exports = {
-//     doSignup: async (userData) => {
-//         try {
-//             // Hash the user's password
-//             userData.password = await bcrypt.hash(userData.password, 10);
-
-//             // Insert the user data into the database
-//             const result = await db.get().collection(collection.USER_COLLECTION).insertOne(userData);
-//             if (result.insertedId) {
-//                 return result.insertedId;
-//             } else {
-//                 throw new Error('Failed to insert user data');
-//             }
-//         } catch (error) {
-//             throw error;
-//         }
-//     },
-//     doLogin: async (userData) => {
-//         console.log('Login attempt with userData:', userData); // Log userData object
-//         try {
-//             let user = await db.get().collection(collection.USER_COLLECTION).findOne({ email: userData.email });
-//             if (user) {
-//                 let status = await bcrypt.compare(userData.password, user.password);
-//                 if (status) {
-//                     console.log('Login successful'); // Log successful login
-//                     return user;
-//                 } else {
-//                     console.log('Login failed: Incorrect password'); // Log incorrect password
-//                     return null;
-//                 }
-//             } else {
-//                 console.log('Login failed: User not found'); // Log user not found
-//                 return null;
-//             }
-//         } catch (error) {
-//             console.error('Error during login:', error); // Log any errors that occur during login
-//             throw error;
-//         }
-//     }
-// };
-
-
-
-
 const db = require('../config/connection');
 const collection = require('../config/collections');
 const bcrypt = require('bcrypt');
 const { resolve, reject } = require('promise');
+const { propfind, response } = require('../app');
+const { ObjectId } = require('mongodb');
 
 module.exports = {
     doSignup: async (userData) => {
@@ -76,13 +30,13 @@ module.exports = {
         if (user){
            bcrypt.compare(userData.password,user.password).then((status)=>{
            if(status){
-            console.log('login success');
+            // console.log('login success');
             response.user=user
             response.status=true
             resolve(response)
 
            }else{
-            console.log('login failed');
+            console.log(response.massage);
             resolve({status:false})
            }
            })
@@ -91,50 +45,140 @@ module.exports = {
             resolve({status:false})
         }
     })
+  },
+  addToCart: (proId, userId) => {
+    let proObj={
+        item: new ObjectId(proId),
+        quantity:1
+    }
+    return new Promise(async(resolve,reject) => {
+        let userCart = await db.get().collection(collection.CART_COLLECTION)
+            .findOne({ user: new ObjectId(userId) });
+        
+        if (userCart) {
+            let proExist=userCart.products.findIndex(product=> product.item==proId)
+            console.log(proExist)
+            if(proExist!=-1){
+                db.get().collection(collection.CART_COLLECTION)
+                .updateOne({user:new ObjectId(userId),'products.item':new ObjectId(proId)},
+                {
+                    $inc:{'products.$.quantity':1}
+                }
+            ).then(()=>{
+                resolve()
+            })
+
+            }else{
+            db.get().collection(collection.CART_COLLECTION)
+                .updateOne({ user: new ObjectId(userId)},
+                    {
+                         $push: {products:proObj }
+
+                        }
+              
+                    ).then((response) => {
+                    resolve();
+                });
+            }
+        } else {
+            let cartObJ = {
+                user: new ObjectId(userId),
+                products:[proObj]
+            };
+            db.get().collection(collection.CART_COLLECTION)
+                .insertOne(cartObJ)
+                .then((response) => {
+                    resolve();
+                });
+        }
+    });
+},
+getCartProducts: (userId) => {
+    return new Promise(async(resolve, reject) => {
+        try {
+            let cartItems = await db.get().collection(collection.CART_COLLECTION)
+                .aggregate([
+                    {
+                        $match: { user: new ObjectId(userId) }
+                    },
+                    {
+                        $unwind:'$products'
+                    },
+                    {
+                        $project:{
+                            item:'$products.item',
+                            quantity:'$products.quantity'
+                        }
+                    },
+                    {
+                        $lookup:{
+                            from:collection.PRODUCT_COLLECTION,
+                            localField:'item',
+                            foreignField:'_id',
+                            as:'product'
+                        }
+                    },
+                    {
+                        $project:{
+                            item:1,quantity:1,product:{$arrayElemAt:['$product',0]}
+                        }
+                    }
+            
+                ]).toArray();
+                console.log(cartItems[0].products);
+            resolve(cartItems);
+        } catch (error) {
+            reject(error);
+        }
+    });
+},
+getCartCount:(userId)=>{
+    return new Promise(async(resolve,reject)=>{
+        let count=0
+      let cart=await db.get().collection(collection.CART_COLLECTION).findOne({user:ObjectId})
+      if(cart){
+        count=cart.products.length
+
+      }
+      resolve(count)
+    })
+},
+changeProductQuantity:(details)=>{
+    details.count=parseInt(details.count)
+    return new Promise((resolve,reject)=>{
+        db.get().collection(collection.CART_COLLECTION)
+        .updateOne({_id:new ObjectId(details.cart),'products.item':new ObjectId(details.product)},
+        {
+            $inc:{'products.$.quantity':details.count}
+        }
+    ).then(()=>{
+        resolve()
+    })
+
+
+
+    })
+},
+ removeProduct: (cartId, productId) => {
+    return new Promise((resolve, reject) => {
+      const cartObjectId = new ObjectId(cartId);
+      const productObjectId = new ObjectId(productId);
+
+      db.get().collection(collection.CART_COLLECTION).updateOne(
+        { _id: cartObjectId },
+        { $pull: { products: { item: productObjectId } } }
+      ).then((response) => {
+        if (response.modifiedCount > 0) {
+          resolve(response);
+        } else {
+          reject(new Error('Product not found in cart'));
+        }
+      }).catch((error) => {
+        reject(error);
+      });
+    });
   }
-};
+}
 
 
 
-// const db = require('../config/connection');
-// const collection = require('../config/collections');
-// const bcrypt = require('bcrypt');
-
-// module.exports = {
-//     doSignup: async (userData) => {
-//         try {
-//             // Hash the user's password
-//             userData.password = await bcrypt.hash(userData.password, 10);
-
-//             // Insert the user data into the database
-//             const result = await db.get().collection(collection.USER_COLLECTION).insertOne(userData);
-//             if (result.insertedId) {
-//                 return result.insertedId;
-//             } else {
-//                 throw new Error('Failed to insert user data');
-//             }
-//         } catch (error) {
-//             throw error;
-//         }
-//     },
-//     doLogin: async (userData) => {
-//         try {
-//             let user = await db.get().collection(collection.USER_COLLECTION).findOne({ email: userData.email });
-//             if (user) {
-//                 let status = await bcrypt.compare(userData.password, user.password);
-//                 if (status) {
-//                     console.log('login success');
-//                     return user; // Return the user object on successful login
-//                 } else {
-//                     console.log('login failed');
-//                     return null; // Return null or false to indicate login failure
-//                 }
-//             } else {
-//                 console.log('login failed');
-//                 return null; // Return null or false to indicate login failure
-//             }
-//         } catch (error) {
-//             throw error;
-//         }
-//     }
-// };

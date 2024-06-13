@@ -12,20 +12,20 @@ const storage = multer.diskStorage({
     cb(null, Date.now() + path.extname(file.originalname)); // use current timestamp as filename
   }
 });
- const mv= require('mv')
+const mv = require('mv')
 const upload = multer({ storage: storage });
 
 /* GET users listing. */
-router.get('/', function(req, res, next) {
-  productHelpers.getAllProducts().then((products)=>{
-   console.log(products)
+router.get('/', function (req, res, next) {
+  productHelpers.getAllProducts().then((products) => {
+    console.log(products)
     res.render('admin/view-proudcts', { admin: true, products });
 
   })
- 
+
 });
 
-router.get('/add-product', function(req, res) {
+router.get('/add-product', function (req, res) {
   res.render('admin/add-product');
 });
 
@@ -39,33 +39,52 @@ router.post('/add-product', upload.single('image'), function (req, res) {
     // Use mv to move the uploaded file
     mv(image.path, './public/product-images/' + id + '.jpg', function (err) {
       if (err) {
-         res.render('admin/add-product');
-      }else{
+        res.render('admin/add-product');
+      } else {
         console.log(err)
       }
-      console.log('File moved successfully') 
+      console.log('File moved successfully')
       res.render('admin/add-product');
     });
-    res.send("set aayi")
+    res.send("set aayi daa moone ")
   });
 });
 
-router.get('/delete-product/:id',(req,res)=>{
-   let prold=req.params.id
-   console.log(prold)
-   productHelpers.deleteProduct(prold).then((response)=>{
+router.get('/delete-product/:id', (req, res) => {
+  let prold = req.params.id
+  console.log(prold)
+  productHelpers.deleteProduct(prold).then((response) => {
     res.redirect('/admin/')
   })
 })
-router.get('/edit-product/:id',async (req,res)=>{
-  let product=await productHelpers.getProductDetails(req.params.id)
+router.get('/edit-product/:id', async (req, res) => {
+  let product = await productHelpers.getProductDetails(req.params.id)
   console.log(product)
-  res.render('admin/edit-product',{product})
+  res.render('admin/edit-product', { product })
 })
-router.post('/edit-product/:id',(req,res)=>{
-  console.log(req.params.id)
-  productHelpers.updateProduct(req.params.id,req.body).then(()=>{
-    res.redirect('/admin/')
-  })
-})
+router.post('/edit-product/:id', upload.single('image'), (req, res) => {
+  console.log(req.params.id);
+  let id = req.params.id;
+
+  // Handle product update
+  productHelpers.updateProduct(id, req.body).then(() => {
+    // Handle file upload
+    if (req.file) {
+      let image = req.file;
+      mv(image.path, './public/product-images/' + id + '.jpg', (err) => {
+        if (err) {
+          console.error(err);
+          res.redirect('/admin/');
+        } else {
+          res.redirect('/admin/');
+        }
+      });
+    } else {
+      res.redirect('/admin/');
+    }
+  }).catch((error) => {
+    console.error(error);
+    res.redirect('/admin/');
+  });
+});
 module.exports = router;
