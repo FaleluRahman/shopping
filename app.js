@@ -33,7 +33,12 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 // app.use(cors());
 // app.use(fileUpload())
-app.use(session({secret:"key",cookie:{maxAge:600000}}))
+app.use(session({
+  secret: 'your-secret-key',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false } // Set to true if using HTTPS
+}));
 
 db.connect((err) => {
   if (err) {

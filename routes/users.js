@@ -15,14 +15,14 @@ const verifyLogin = (req, res, next) => {
 router.get('/', async function (req, res, next) {
   let user = req.session.user
   console.log(user);
-  let cartCount=null
-  if(req.session.user){
-   cartCount=await userHelpers.getCartCount(req.session.user._id)
+  let cartCount = null
+  if (req.session.user) {
+    cartCount = await userHelpers.getCartCount(req.session.user._id)
   }
-// let cartCount=await userHelpers.getCartCount(req.session.user._id)
+  // let cartCount=await userHelpers.getCartCount(req.session.user._id)
   productHelpers.getAllProducts().then((products) => {
     // console.log(products)
-    res.render('user/view-products', { products, user,cartCount });
+    res.render('user/view-products', { products, user, cartCount });
 
   })
 });
@@ -66,21 +66,26 @@ router.get('/logout', (req, res) => {
 
 router.get('/cart', verifyLogin, async (req, res) => {
   let products = await userHelpers.getCartProducts(req.session.user._id,)
-  console.log(products);
-  res.render('user/cart',{products,user:req.session.user})
+  let totalValue = await userHelpers.getTotalAmount(req.session.user._id)
+
+  console.log(totalValue);
+  res.render('user/cart', { products, user: req.session.user, totalValue })
 })
 router.get('/add-to-cart/:id', (req, res) => {
   console.log("api call");
   userHelpers.addToCart(req.params.id, req.session.user._id).then(() => {
-    res.json({status:true})
+    res.json({ status: true })
   })
-  
+
 })
-router.post('/change-product-quantity',(req,res,next)=>{
-  console.log(req.body);
-  userHelpers.changeProductQuantity(req.body).then(()=>{
+router.post('/change-product-quantity',verifyLogin, (req, res, next) => {
+  userHelpers.changeProductQuantity(req.body).then(async (response) => {
+    let total=await userHelpers.getTotalAmount(req.session.user._id)
+    console.log(total);
+    res.json({success:true,...response,total})
   })
 })
+
 router.get('/cart', verifyLogin, async (req, res) => {
   try {
     let products = await userHelpers.getCartProducts(req.session.user._id);
@@ -92,11 +97,11 @@ router.get('/cart', verifyLogin, async (req, res) => {
   }
 });
 
-router.get('/remove-product/:cartId/:productId', (req, res) => {
+router.delete('/remove-product/:cartId/:productId', (req, res) => {
   const { cartId, productId } = req.params;
 
   userHelpers.removeProduct(cartId, productId).then((response) => {
-    res.redirect('/cart'); // Redirect to the cart page after removal
+    res.status(201).send({ success: true }) // Redirect to the cart page after removal
   }).catch((error) => {
     console.error('Error removing product from cart:', error);
     res.status(500).send('Error removing product from cart');
@@ -110,6 +115,10 @@ router.get('/remove-product/:cartId/:productId', (req, res) => {
 //     // res.redirect('/admin/')
 //   })
 // })
+router.get('/place-order',verifyLogin,async(req,res)=>{
+  let total=await userHelpers.getTotalAmount(req.session.user._id)
+  res.render('user/place-order',{total})
+})
 
 module.exports = router;
 

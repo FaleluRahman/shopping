@@ -125,7 +125,6 @@ getCartProducts: (userId) => {
                     }
             
                 ]).toArray();
-                console.log(cartItems[0].products);
             resolve(cartItems);
         } catch (error) {
             reject(error);
@@ -151,8 +150,8 @@ changeProductQuantity:(details)=>{
         {
             $inc:{'products.$.quantity':details.count}
         }
-    ).then(()=>{
-        resolve()
+    ).then((response)=>{
+        resolve(response)
     })
 
 
@@ -177,6 +176,56 @@ changeProductQuantity:(details)=>{
         reject(error);
       });
     });
+  },
+  getTotalAmount:(userId)=>{
+    return new Promise(async(resolve, reject) => {
+        let total = await db.get().collection(collection.CART_COLLECTION).aggregate([
+            {
+                $match: { user: new ObjectId(userId) }
+            },
+            {
+                $unwind: '$products'
+            },
+            {
+                $project: {
+                    item: '$products.item',
+                    quantity: '$products.quantity'
+                }
+            },
+            {
+                $lookup: {
+                    from: collection.PRODUCT_COLLECTION,
+                    localField: 'item',
+                    foreignField: '_id', // Ensure this matches the field type in PRODUCT_COLLECTION
+                    as: 'product'
+                }
+            },
+            {
+                $unwind: '$product'
+            },
+            {
+                $project: {
+                    item: 1,
+                    quantity: 1,
+                    price: { $toDouble: '$product.Price' } // Convert price to numeric type
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    total: { $sum: { $multiply: ['$quantity', '$price'] } }
+                }
+            }
+        ]).toArray();
+        
+        if (total.length > 0) {
+            console.log(total[0].total);
+            resolve(total[0].total);
+        }else{
+            console.log(total)
+            resolve(0)
+        }
+    })
   }
 }
 

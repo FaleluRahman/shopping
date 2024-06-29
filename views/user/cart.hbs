@@ -1,74 +1,107 @@
- <section>
+<section>
     <div class="container">
-        
         <table class="table mt-5">
             <thead>
                 <tr>
-
                     <th scope="col">Item</th>
                     <th scope="col">Title</th>
-                  <th scope="col">Quantity</th> 
+                    <th scope="col">Price</th>
+                    <th scope="col">Quantity</th>
+                    <th scope="col">Action</th>
                 </tr>
-   </thead>
-  <tbody>
-  {{#each products}}
-    {{#if this.quantity}}
-      <tr>
-        <td>
-          <img style="width: 50px; height: 50px;" src="/product-images/{{this.product._id}}.jpg" alt="">
-        </td>
-        <td>{{this.product.Name}}</td>
-        <td>
-          <button class="cart-item-count mr-3" onclick="changeQuantity('{{this._id}}', '{{this.product._id}}', -1)">-</button>
-          {{this.quantity}}
-          <button class="cart-item-count ml-3" onclick="changeQuantity('{{this._id}}', '{{this.product._id}}', 1)">+</button>
-        </td>
-        <td>
-          <a href="/user/remove-product/{{../_id}}/{{this.product._id}}" class="btn btn-danger" onclick="return confirm('Are you sure you want to remove {{this.product.Name}}?')">Remove</a>
-        </td>
-      </tr>
-    {{/if}}
-  {{/each}}
-</tbody>
-     
-         </div>
+            </thead>
+            <tbody>
+                {{#each products}}
+                {{#if this.quantity}}
+                <tr>
+                    <td>
+                        <img style="width: 50px; height: 50px;" src="/product-images/{{this.product._id}}.jpg" alt="">
+                    </td>
+                    <td>{{this.product.Name}}</td>
+                    <td>Rs.{{this.product.Price}}</td>
+                    <td>
+                        <button class="btn btn-danger mr-3"
+                            onclick="changeQuantity('{{this._id}}','{{this.product._id}}', -1)">-</button>
+                        <span id="quantity-{{this.product._id}}">{{this.quantity}}</span>
+                        <button class="btn btn-success ml-3"
+                            onclick="changeQuantity('{{this._id}}','{{this.product._id}}', 1)">+</button>
+                    </td>
+                    <td>
+                        <button class="btn btn-danger"
+                            onclick="removeProduct('{{this._id}}', '{{this.product._id}}')">Remove Product</button>
+                    </td>
+
+                </tr>
+                {{/if}}
+                {{/each}}
+            </tbody>
+        </table>
+        <hr>
+        <div class="float-right pr-5">
+            <h5 class="float-left mt-5">Total: Rs. <span id="total">{{totalValue}}</span></h5><br>
+            <a href="/place-order" class="btn btn-success mt-3" style="width: 100%;"> <b>Place Order</b></a>
+        </div>
+    </div>
 </section>
 
+<script>
+    function changeQuantity(cartId, proId, count) {
+        let quantityElem = document.getElementById(`quantity-${proId}`);
+        let quantity = parseInt(quantityElem.innerHTML);
+        count = parseInt(count);
 
-<script>
-    function changeQuantity(cartId,proId,count){
-    $.ajax({
-        url:'/change-product-quantity',
-        data:{
-            cart:cartId,
-            product:proId,
-            count:count
-        },
-        method:'post',
-        success:(response)=>{
-            alert(response)     
+
+        if (quantity + count == 0) {
+            removeProduct(cartId, proId)
+
+        } else {
+            $.ajax({
+                url: '/change-product-quantity',
+                data: {
+                    cart: cartId,
+                    product: proId,
+                    count: count,
+                    quantity: quantity
+                },
+                method: 'post',
+                success: (response) => {
+                    if (response.success) {
+
+                        quantityElem.innerHTML = parseInt(quantityElem.innerHTML) + count;
+                        document.getElementById('total').innerHTML = response.total;
+
+                    } else {
+                        alert('Failed to update quantity');
+                    }
+                },
+                error: (xhr, status, error) => {
+                    console.error('Error updating product quantity:', error);
+                    alert('An error occurred while updating the product quantity. Please try again.');
+                }
+            });
         }
-    })
+
+
+
     }
-</script>
-<script>
-  function removeProduct(cartId, productId) {
-    if (confirm('Are you sure you want to remove this product?')) {
-      $.ajax({
-        url: `/user/remove-product/${cartId}/${productId}`,
-        method: 'DELETE',
-        success: (response) => {
-          if (response.success) {
-            location.reload(); // Reload the page or update the cart display
-          } else {
-            alert('Failed to remove product');
-          }
-        },
-        error: (xhr, status, error) => {
-          console.error('Error removing product:', error);
-          alert('An error occurred while removing the product. Please try again.');
+    function removeProduct(cartId, productId) {
+        if (confirm('Are you sure you want to remove this product?')) {
+            console.log(cartId, productId);
+            $.ajax({
+                url: `/remove-product/${cartId}/${productId}`,
+                method: 'DELETE',
+                success: (response) => {
+                    if (response.success) {
+                        location.reload(); // Reload the page or update the cart display
+                    } else {
+                        alert('Failed to remove product');
+                    }
+                },
+                error: (xhr, status, error) => {
+                    console.error('Error removing product:', error);
+                    alert('An error occurred while removing the product. Please try again.');
+                }
+            });
         }
-      });
     }
-  }
 </script>
