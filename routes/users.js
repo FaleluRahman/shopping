@@ -121,4 +121,3 @@ router.get('/place-order',verifyLogin,async(req,res)=>{
 })
 
 module.exports = router;
-

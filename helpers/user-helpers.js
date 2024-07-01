@@ -226,8 +226,32 @@ changeProductQuantity:(details)=>{
             resolve(0)
         }
     })
+  },
+  placeOrder:(order,products,total)=>{
+     return new Promise((resolve,reject)=>{
+     console.log(order,products,total);
+     let status=order.PaymentMethod==='COD'?'placed':'pending'
+     let orderObj={
+        DeliveryDetails:{
+            mobile:order.mobile,
+            address:order.address,
+            pincode:order.pincode
+        },
+        userId:new ObjectId(order.userId),
+        PaymentMethod:order.PaymentMethod,
+        products:products,
+        status:status
+     }
+     db.get().collection(collection.ORDER_COLLECTION).insertOne(orderObj).then((response)=>{
+        resolve()
+     })
+     
+     })
+  },
+  getcartProductList:(userId)=>{
+    return new Promise(async(resolve,reject)=>{
+        let cart=await db.get().collection(collection.CART_COLLECTION).findOne({user:new ObjectId(userId)})
+        resolve(cart.products)
+    })
   }
 }
-
-
-
