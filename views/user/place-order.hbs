@@ -25,10 +25,10 @@
                         <div class="payment">
                             <p>Payment Method</p>
                             <label class="radio-inline">
-                                <input type="radio" name="paymentMethod" value="COD" checked> COD
+                                <input type="radio" name="PaymentMethod" value="COD" checked> COD
                             </label>
                             <label class="radio-inline mt-2">
-                                <input type="radio" name="paymentMethod" value="Online"> Online Payment
+                                <input type="radio" name="PaymentMethod" value="Online"> Online Payment
                             </label>
                             <button class="btn btn-primary float-right mt-3" type="submit">Checkout</button>
                         </div>
@@ -47,6 +47,9 @@
       data:$('#checkout-form').serialize()
       success:(response)=>{
         alert(response)
+        if(response.status){
+          location.herf=''
+        }
       }
     })
   })

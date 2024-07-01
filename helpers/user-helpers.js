@@ -227,27 +227,37 @@ changeProductQuantity:(details)=>{
         }
     })
   },
-  placeOrder:(order,products,total)=>{
-     return new Promise((resolve,reject)=>{
-     console.log(order,products,total);
-     let status=order.PaymentMethod==='COD'?'placed':'pending'
-     let orderObj={
-        DeliveryDetails:{
-            mobile:order.mobile,
-            address:order.address,
-            pincode:order.pincode
-        },
-        userId:new ObjectId(order.userId),
-        PaymentMethod:order.PaymentMethod,
-        products:products,
-        status:status
-     }
-     db.get().collection(collection.ORDER_COLLECTION).insertOne(orderObj).then((response)=>{
-        resolve()
-     })
-     
-     })
-  },
+  placeOrder: (order, products, total) => {
+    return new Promise((resolve, reject) => {
+        console.log(order, products, total);
+        let status = order.PaymentMethod === 'COD' ? 'placed' : 'pending';
+        let orderObj = {
+            DeliveryDetails: {
+                mobile: order.mobile,
+                address: order.address,
+                pincode: order.pincode
+            },
+            userId: new ObjectId(order.userId),
+            PaymentMethod: order.PaymentMethod,
+            products: products,
+            totalAmount: total,
+            status: status,
+            createdAt: new Date() // It's a good practice to store the creation date of the order
+        };
+
+        db.get().collection(collection.ORDER_COLLECTION).insertOne(orderObj)
+            .then((response) => {
+                return db.get().collection(collection.CART_COLLECTION).deleteOne({ user: new ObjectId(order.userId) })
+                    .then(() => {
+                        resolve(response.insertedId);
+                    });
+            })
+            .catch((err) => {
+                reject(err); // Reject the promise with the error\
+            });
+    });
+},
+
   getcartProductList:(userId)=>{
     return new Promise(async(resolve,reject)=>{
         let cart=await db.get().collection(collection.CART_COLLECTION).findOne({user:new ObjectId(userId)})
