@@ -44,11 +44,11 @@
     $.ajax({
       url:'/place-order',
       method:'Post',
-      data:$('#checkout-form').serialize()
-      success:(response)=>{
+      data:$('#checkout-form').serialize(),
+      success:function (response){
         alert(response)
-        if(response.status){
-          location.herf=''
+        if(response.status){       
+       location.href = '/order-success';
         }
       }
     })
@@ -74,41 +74,3 @@
 </style>
 
 
-
-
-{{!-- <section>
-<div class="container mt-5">
-  <form action="" id="checkout-form"></form>
-<div class="row">
-  <div class="col-md-6">
-    <h2>Delivery Details</h2>
-  <div>
-    <label for="">Adress</label>
-
-    <label class="form-control" type="text" id="adress" name="adress"></label>
-    <label for="">pin code</label>
-        <label class="form-control" type="text" id="pincode" name="pincode"></label>
-        <label for="">Mobile</label>
-            <label class="form-control" type="text" id="mobile" name="mobile"></label>
-
-  </div>
-  </div>
-   <div class="col-md-4">
-          <div class="container mt-5 ml-5 checkout">
-            <h5>Total Amount : Rs.{{total}}</h5>
-<hr>
-<div class="payment">
-  <p>Payment Method</p>
-  <label class="radio-inline">
-        <input type="radio" name="Payment-Method" value="COD" checked>COD
-      </label>
-      <label class="radio-inline mt-2">
-        <input type="radio" name="Payment-Method" value="Online">Online Payment
-      </label>
-      <button class="btn btn-primary float-right" type="submit">checkout</button>
-</div>
-          </div>
-
-        </div>
-</div>
-</section> --}}

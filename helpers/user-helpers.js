@@ -2,7 +2,7 @@ const db = require('../config/connection');
 const collection = require('../config/collections');
 const bcrypt = require('bcrypt');
 const { resolve, reject } = require('promise');
-const { propfind, response } = require('../app');
+const { propfind, response, use } = require('../app');
 const { ObjectId } = require('mongodb');
 
 module.exports = {
@@ -235,7 +235,8 @@ changeProductQuantity:(details)=>{
             DeliveryDetails: {
                 mobile: order.mobile,
                 address: order.address,
-                pincode: order.pincode
+                pincode: order.pincode,
+                date:order.date
             },
             userId: new ObjectId(order.userId),
             PaymentMethod: order.PaymentMethod,
@@ -247,9 +248,11 @@ changeProductQuantity:(details)=>{
 
         db.get().collection(collection.ORDER_COLLECTION).insertOne(orderObj)
             .then((response) => {
+                // let orderItems=response
+                // console.log(orderItems)
                 return db.get().collection(collection.CART_COLLECTION).deleteOne({ user: new ObjectId(order.userId) })
                     .then(() => {
-                        resolve(response.insertedId);
+                        resolve(response);
                     });
             })
             .catch((err) => {
@@ -258,10 +261,72 @@ changeProductQuantity:(details)=>{
     });
 },
 
-  getcartProductList:(userId)=>{
+getCartProductList: (userId) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let cart = await db.get().collection(collection.CART_COLLECTION).findOne({ user: new ObjectId(userId) });
+            if (cart && cart.products) {
+                resolve(cart.products);
+            } else {
+                resolve([]); // Resolve with an empty array if cart or products are not found
+            }
+        } catch (error) {
+            reject(error); // Reject the promise if there's an error
+        }
+    });
+},
+  getUserOrders:(userId)=>{
     return new Promise(async(resolve,reject)=>{
-        let cart=await db.get().collection(collection.CART_COLLECTION).findOne({user:new ObjectId(userId)})
-        resolve(cart.products)
+        console.log(userId)
+        let orders=await db.get().collection(collection.ORDER_COLLECTION)
+        .find({userId:new ObjectId (userId)}).toArray()
+        console.log(orders)
+        resolve(orders)
     })
-  }
+  },
+  getOrderProducts:(orderId)=>{
+    return new Promise(async(resolve, reject) => {
+        let total = await db.get().collection(collection.ORDER_COLLECTION).aggregate([
+            {
+                $match: { user: new ObjectId(orderId) }
+            },
+            {
+                $unwind: '$products'
+            },
+            {
+                $project: {
+                    item: '$products.item',
+                    quantity: '$products.quantity'
+                }
+            },
+            {
+                $lookup: {
+                    from: collection.PRODUCT_COLLECTION,
+                    localField: 'item',
+                    foreignField: '_id', // Ensure this matches the field type in PRODUCT_COLLECTION
+                    as: 'product'
+                }
+            },
+            {
+                $unwind: '$product'
+            },
+            {
+                $project: {
+                    item: 1,
+                    quantity: 1,
+                    price: { $toDouble: '$product.Price' } // Convert price to numeric type
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    total: { $sum: { $multiply: ['$quantity', '$price'] } }
+                }
+            }
+        ]).toArray();
+        
+        // console.log(orderItems)
+        // resolve(orderItems)
+    })
+  },
 }
