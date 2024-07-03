@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt');
 const { resolve, reject } = require('promise');
 const { propfind, response, use } = require('../app');
 const { ObjectId } = require('mongodb');
+const { json } = require('express');
 
 module.exports = {
     doSignup: async (userData) => {
@@ -307,6 +308,7 @@ getCartProductList: (userId) => {
                     as: 'product'
                 }
             },
+            
             {
                 $unwind: '$product'
             },
@@ -314,7 +316,8 @@ getCartProductList: (userId) => {
             $project:{
                 item:1,quantity:1,product:{$arrayElemAt:['$product',0]}
             }
-           }
+           },
+           
         ]).toArray();
         
         console.log(orderItems)
