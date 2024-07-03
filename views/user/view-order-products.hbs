@@ -1,0 +1,30 @@
+
+<body>
+    <div class="container mt-5">
+        <h2>Order Products</h2>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Product Name</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each products.orderItems}}
+                <tr>
+                    <td>{{this.productName}}</td>
+                    <td>{{this.quantity}}</td>
+                    <td>{{this.price}}</td>
+                </tr>
+                {{/each}}
+                <tr>
+                    <td colspan="2"><strong>Total</strong></td>
+                    <td><strong>{{products.orderTotal}}</strong></td>
+                </tr>
+            </tbody>
+        </table>
+        <a href="/orders" class="btn btn-primary">Back to Orders</a>
+    </div>
+</body>
+

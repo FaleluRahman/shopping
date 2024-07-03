@@ -236,14 +236,14 @@ changeProductQuantity:(details)=>{
                 mobile: order.mobile,
                 address: order.address,
                 pincode: order.pincode,
-                date:order.date
+                
             },
             userId: new ObjectId(order.userId),
             PaymentMethod: order.PaymentMethod,
             products: products,
             totalAmount: total,
             status: status,
-            createdAt: new Date() // It's a good practice to store the creation date of the order
+            Date: new Date() // It's a good practice to store the creation date of the order
         };
 
         db.get().collection(collection.ORDER_COLLECTION).insertOne(orderObj)
@@ -286,7 +286,7 @@ getCartProductList: (userId) => {
   },
   getOrderProducts:(orderId)=>{
     return new Promise(async(resolve, reject) => {
-        let total = await db.get().collection(collection.ORDER_COLLECTION).aggregate([
+        let orderItems = await db.get().collection(collection.ORDER_COLLECTION).aggregate([
             {
                 $match: { user: new ObjectId(orderId) }
             },
@@ -310,23 +310,15 @@ getCartProductList: (userId) => {
             {
                 $unwind: '$product'
             },
-            {
-                $project: {
-                    item: 1,
-                    quantity: 1,
-                    price: { $toDouble: '$product.Price' } // Convert price to numeric type
-                }
-            },
-            {
-                $group: {
-                    _id: null,
-                    total: { $sum: { $multiply: ['$quantity', '$price'] } }
-                }
+           {
+            $project:{
+                item:1,quantity:1,product:{$arrayElemAt:['$product',0]}
             }
+           }
         ]).toArray();
         
-        // console.log(orderItems)
-        // resolve(orderItems)
+        console.log(orderItems)
+        resolve(orderItems)
     })
   },
 }
