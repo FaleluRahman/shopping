@@ -1,10 +1,59 @@
+
+    <style>
+        .success-container {
+            margin-top: 50px;
+            animation: gradientBackground 10s ease infinite;
+            padding: 50px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            background: linear-gradient(45deg, #e03737, #742e4e, #f44fa7, #eea6b8);
+            background-size: 400% 400%;
+        }
+
+        @keyframes gradientBackground {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .success-message {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            animation: fadeIn 2s ease-in-out;
+        }
+
+        .btn-primary {
+            font-size: 1.2rem;
+            animation: fadeIn 2s ease-in-out 1s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+
 <section>
-    <div class="row">
-        <div class="container">
-        <div class="col-md-12 text-center">
-   <h1 class="text-center">Order Placed Successfully</h1>
-   <a href="/orders" class="btn btn-primary">View orders</a>
-       </div>
+    <div class="container success-container">
+        <div class="row justify-content-center">
+            <div class="col-md-12 text-center">
+                <h1 class="success-message text-white">Order Placed Successfully</h1>
+                <p class="text-white">Thank you for your purchase! Your order has been placed successfully.</p>
+                <a href="/orders" class="btn btn-primary">View Orders</a>
+            </div>
         </div>
     </div>
- </section>
+</section>
+

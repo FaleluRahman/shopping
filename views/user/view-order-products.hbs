@@ -1,30 +1,76 @@
 
+ 
+    <section>
+        <div class="container mt-5">
+            <div class="row">
+                {{#each products.orderItems}}
+                <div class="col-md-3 p-3">
+                    <div class="card" style="width: 15rem; height: 34rem">
+                        <img class="card-img-top" src="/product-images/{{this._id}}.jpg" alt="Card image cap">
+                        <div class="card-body">
+                            <h5 class="card-title">{{this.productName}}</h5>
+                            <p class="card-text">{{this.Description}}</p>
+                            <p class="card-price">{{this.price}}</p>
+                        </div>
+                    </div>
+                </div>
+                {{/each}}
+            </div>
+            <div class="row mt-5">
+                <div class="col-md-12">
+                    <h5>Total Amount: Rs. {{products.orderTotal}}</h5>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <a href="/orders" class="btn btn-primary">Back to Orders</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    
+
+
+ 
+
+   
+
+
+{{!-- 
 <body>
     <div class="container mt-5">
         <h2>Order Products</h2>
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>Product Name</th>
-                    <th>Quantity</th>
-                    <th>Price</th>
-                </tr>
-            </thead>
-            <tbody>
+       
+        
                 {{#each products.orderItems}}
+  <div class="col-md-3 p-3" >
+    <div class="card" style="width: 15rem; height: 34rem">
+      <img class="card-img-top" src="/product-images/{{this._id}}.jpg" 
+      alt="Card image cap">
+      <div class="card-body">
+        <h5 class="card-title">{{this.Name}}</h5>
+        <p class="card-text">{{this.quantity}}</p>
+        <p class="card-price">{{this.price}}</p>
+        {{!-- <a href="/add-to-cart/{{this._id}}" class="btn btn-primary">Add to Cart</a> --}}
+        {{!-- <button onclick="addToCart('{{this._id}}')" class="btn btn-primary">Add to cart</button>
+      </div>
+    </div>
+  </div>
+{{/each}} --}}
+                {{!-- {{#each products.orderItems}}
                 <tr>
-                    <td>{{this.productName}}</td>
+                    <td>{{this.Name}}</td>
                     <td>{{this.quantity}}</td>
                     <td>{{this.price}}</td>
                 </tr>
-                {{/each}}
-                <tr>
+                {{/each}} --}}
+                {{!-- <tr>
                     <td colspan="2"><strong>Total</strong></td>
-                    <td><strong>{{products.orderTotal}}</strong></td>
+                    <td><strong>{{total}}</strong></td>
                 </tr>
-            </tbody>
-        </table>
+            <br>
         <a href="/orders" class="btn btn-primary">Back to Orders</a>
     </div>
 </body>
-
+ --}} 
